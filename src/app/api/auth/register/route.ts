@@ -47,8 +47,11 @@ export async function POST(req: NextRequest) {
 
     const otp = generateOTP();
     await OTPVerification.create({ email, otp, type: "register" });
-    await sendOTP(email, otp, "register");
-
+    try {
+  await sendOTP(email, otp, "register");
+} catch (err) {
+  console.error("Email failed:", err);
+}
     return NextResponse.json(
       {
         success: true,
