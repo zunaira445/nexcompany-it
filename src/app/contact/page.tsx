@@ -127,7 +127,7 @@ export default function ContactPage() {
                     name="email"
                     value={form.email}
                     onChange={handleChange}
-                    placeholder="john@example.com"
+                    placeholder="zunairasahi04@gmail.com"
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-primary transition-colors"
                   />
                   {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
@@ -141,7 +141,7 @@ export default function ContactPage() {
                   name="phone"
                   value={form.phone}
                   onChange={handleChange}
-                  placeholder="+92 300 1234567"
+                  placeholder="+92 3488646187"
                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-primary transition-colors"
                 />
               </div>

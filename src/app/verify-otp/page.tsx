@@ -33,7 +33,7 @@ function VerifyOtpForm() {
 
       if (data.success) {
         toast.success("Email verified! Welcome aboard.");
-        router.push("/dashboard");
+        router.push("/");
       } else {
         toast.error(data.message || "Invalid or expired OTP.");
       }
@@ -67,12 +67,12 @@ function VerifyOtpForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-20 px-4 bg-[#0A0A0F]">
+    <div className="relative min-h-screen flex items-center justify-center py-20 px-4">
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="w-full max-w-md"
+        className="relative z-10 w-full max-w-md"
       >
         <div className="bg-[#0F172A]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
           <div className="text-center mb-8">
