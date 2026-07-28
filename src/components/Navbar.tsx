@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown, User, LogOut, LayoutDashboard } from "lucide-react";
 
 const navLinks = [
   { name: "Home", href: "/" },
@@ -26,9 +27,29 @@ const navLinks = [
 ];
 
 export default function Navbar() {
+  const router = useRouter();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [user, setUser] = useState<{ fullName: string; email: string; role: string } | null>(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.user) setUser(data.user);
+      })
+      .catch(() => {});
+  }, []);
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    setUser(null);
+    setShowUserMenu(false);
+    router.push("/");
+    router.refresh();
+  }
 
   useEffect(() => {
     const handleScroll = () => {
@@ -115,18 +136,65 @@ export default function Navbar() {
 
           {/* CTA Buttons */}
           <div className="hidden lg:flex items-center gap-4">
-            <Link
-              href="/login"
-              className="text-sm font-semibold text-gray-300 hover:text-white transition-colors"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/register"
-              className="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-semibold rounded-full hover:shadow-lg hover:shadow-blue-500/25 transition-all hover:scale-105"
-            >
-              Get Started
-            </Link>
+            {user ? (
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center gap-2 text-sm font-semibold text-gray-300 hover:text-white transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
+                    {user.fullName?.charAt(0).toUpperCase() || <User className="w-4 h-4" />}
+                  </div>
+                  {user.fullName?.split(" ")[0]}
+                  <ChevronDown className={`w-4 h-4 transition-transform ${showUserMenu ? "rotate-180" : ""}`} />
+                </button>
+                <AnimatePresence>
+                  {showUserMenu && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="absolute right-0 top-full mt-2 w-56 bg-[#0F172A] border border-white/10 rounded-xl overflow-hidden shadow-xl"
+                    >
+                      <div className="px-4 py-3 border-b border-white/10">
+                        <p className="text-white text-sm font-medium truncate">{user.fullName}</p>
+                        <p className="text-gray-500 text-xs truncate">{user.email}</p>
+                      </div>
+                      {user.role === "admin" && (
+                        <Link
+                          href="/admin"
+                          onClick={() => setShowUserMenu(false)}
+                          className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white"
+                        >
+                          <LayoutDashboard className="w-4 h-4" /> Admin Panel
+                        </Link>
+                      )}
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white"
+                      >
+                        <LogOut className="w-4 h-4" /> Logout
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="text-sm font-semibold text-gray-300 hover:text-white transition-colors"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/register"
+                  className="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-semibold rounded-full hover:shadow-lg hover:shadow-blue-500/25 transition-all hover:scale-105"
+                >
+                  Get Started
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -172,18 +240,47 @@ export default function Navbar() {
                 transition={{ delay: 0.5 }}
                 className="flex flex-col gap-4 mt-8"
               >
-                <Link
-                  href="/login"
-                  className="px-8 py-3 border border-white/20 text-white font-semibold rounded-full text-center hover:bg-white/10 transition-all"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/register"
-                  className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-full text-center hover:shadow-lg hover:shadow-blue-500/25 transition-all"
-                >
-                  Get Started
-                </Link>
+                {user ? (
+                  <>
+                    <div className="px-4 py-3 bg-white/5 rounded-xl">
+                      <p className="text-white text-sm font-medium">{user.fullName}</p>
+                      <p className="text-gray-500 text-xs truncate">{user.email}</p>
+                    </div>
+                    {user.role === "admin" && (
+                      <Link
+                        href="/admin"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="px-8 py-3 border border-white/20 text-white font-semibold rounded-full text-center hover:bg-white/10 transition-all"
+                      >
+                        Admin Panel
+                      </Link>
+                    )}
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-full text-center hover:shadow-lg hover:shadow-blue-500/25 transition-all"
+                    >
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      className="px-8 py-3 border border-white/20 text-white font-semibold rounded-full text-center hover:bg-white/10 transition-all"
+                    >
+                      Sign In
+                    </Link>
+                    <Link
+                      href="/register"
+                      className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-full text-center hover:shadow-lg hover:shadow-blue-500/25 transition-all"
+                    >
+                      Get Started
+                    </Link>
+                  </>
+                )}
               </motion.div>
             </div>
           </motion.div>

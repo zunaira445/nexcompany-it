@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import ContactMessage from "@/models/ContactMessage";
 import { sendContactEmail } from "@/lib/mail";
+import { requireAdmin } from "@/lib/adminAuth";
 
 // POST - Create contact message + notify admin via email
 export async function POST(req: NextRequest) {
@@ -65,6 +66,9 @@ export async function POST(req: NextRequest) {
 // GET - Get all messages (Admin)
 export async function GET(req: NextRequest) {
   try {
+    if (!(await requireAdmin(req))) {
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 403 });
+    }
     await connectDB();
     const messages = await ContactMessage.find().sort({ createdAt: -1 });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { MapPin, Phone, Mail, Clock, Send, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -17,32 +17,33 @@ interface FormData {
 
 const initialForm: FormData = { name: "", email: "", phone: "", subject: "", message: "" };
 
-const contactInfo = [
-  {
-    icon: MapPin,
-    label: "Our Office",
-    value: "123 Tech Avenue, Suite 400, Business District, Karachi, Pakistan",
-  },
-  {
-    icon: Phone,
-    label: "Phone Number",
-    value: "+92 300 1234567",
-  },
-  {
-    icon: Mail,
-    label: "Email Address",
-    value: "info@nexgenit.com",
-  },
-  {
-    icon: Clock,
-    label: "Business Hours",
-    value: "Mon – Fri: 9:00 AM – 6:00 PM",
-  },
-];
+const defaultSettings = {
+  contactAddress: "123 Tech Avenue, Suite 400, Business District, Karachi, Pakistan",
+  contactPhone: "+92 300 1234567",
+  contactEmail: "info@nexgenit.com",
+  contactHours: "Mon – Fri: 9:00 AM – 6:00 PM",
+};
 
 export default function ContactPage() {
+  const [siteSettings, setSiteSettings] = useState(defaultSettings);
   const [form, setForm] = useState<FormData>(initialForm);
   const [errors, setErrors] = useState<Partial<FormData>>({});
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.settings) setSiteSettings(data.settings);
+      })
+      .catch(() => {});
+  }, []);
+
+  const contactInfo = [
+    { icon: MapPin, label: "Our Office", value: siteSettings.contactAddress },
+    { icon: Phone, label: "Phone Number", value: siteSettings.contactPhone },
+    { icon: Mail, label: "Email Address", value: siteSettings.contactEmail },
+    { icon: Clock, label: "Business Hours", value: siteSettings.contactHours },
+  ];
   const [loading, setLoading] = useState(false);
 
   function validate(): boolean {
@@ -127,7 +128,7 @@ export default function ContactPage() {
                     name="email"
                     value={form.email}
                     onChange={handleChange}
-                    placeholder="zunairasahi04@gmail.com"
+                    placeholder="john@example.com"
                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-primary transition-colors"
                   />
                   {errors.email && <p className="text-red-400 text-xs mt-1">{errors.email}</p>}
@@ -141,7 +142,7 @@ export default function ContactPage() {
                   name="phone"
                   value={form.phone}
                   onChange={handleChange}
-                  placeholder="+92 3488646187"
+                  placeholder="+92 300 1234567"
                   className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-primary transition-colors"
                 />
               </div>

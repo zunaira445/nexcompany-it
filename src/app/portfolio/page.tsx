@@ -1,21 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, ExternalLink, TrendingUp } from "lucide-react";
+import { ArrowRight, ExternalLink } from "lucide-react";
 import Image from "next/image";
 import SectionHeading from "@/components/ui/SectionHeading";
 import GradientButton from "@/components/ui/GradientButton";
 import FadeIn from "@/components/animations/FadeIn";
-import { portfolioProjects, portfolioCategories, portfolioStats } from "@/data/portfolio-data";
+import { portfolioProjects as fallbackProjects, portfolioCategories, portfolioStats } from "@/data/portfolio-data";
+
+interface DbProject {
+  _id: string;
+  title: string;
+  description: string;
+  image: string;
+  technologies: string[];
+  category: string;
+}
 
 export default function PortfolioPage() {
   const [activeCategory, setActiveCategory] = useState<string>("All");
+  const [projects, setProjects] = useState<DbProject[]>([]);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/portfolio")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.projects.length > 0) {
+          setProjects(data.projects);
+        } else {
+          // No admin-added projects yet — show sample data so the page isn't empty
+          setProjects(fallbackProjects.map((p) => ({ ...p, _id: String(p.id) })));
+        }
+      })
+      .catch(() => setProjects(fallbackProjects.map((p) => ({ ...p, _id: String(p.id) }))))
+      .finally(() => setLoaded(true));
+  }, []);
 
   const filteredProjects =
-    activeCategory === "All"
-      ? portfolioProjects
-      : portfolioProjects.filter((p) => p.category === activeCategory);
+    activeCategory === "All" ? projects : projects.filter((p) => p.category === activeCategory);
 
   return (
     <div className="min-h-screen pt-32 pb-20">
@@ -75,7 +99,7 @@ export default function PortfolioPage() {
           <AnimatePresence mode="popLayout">
             {filteredProjects.map((project) => (
               <motion.div
-                key={project.id}
+                key={project._id}
                 layout
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -109,20 +133,12 @@ export default function PortfolioPage() {
                   </h3>
                   <p className="text-gray-400 text-sm mb-4">{project.description}</p>
 
-                  <div className="flex flex-wrap gap-2 mb-4">
+                  <div className="flex flex-wrap gap-2">
                     {project.technologies.map((t) => (
                       <span key={t} className="text-xs text-gray-500 bg-white/5 px-2 py-1 rounded">
                         {t}
                       </span>
                     ))}
-                  </div>
-
-                  <div className="mt-auto pt-4 border-t border-white/10">
-                    <div className="flex items-start gap-2 text-sm">
-                      <TrendingUp className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-300">{project.result}</span>
-                    </div>
-                    <div className="text-xs text-gray-500 mt-2">Client: {project.client}</div>
                   </div>
                 </div>
               </motion.div>

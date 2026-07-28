@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
       email: user.email,
       role: user.role,
     });
-    setTokenCookie(token);
+    await setTokenCookie(token);
 
     return NextResponse.json(
       {

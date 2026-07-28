@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Target,
@@ -102,21 +103,37 @@ const stats = [
 ];
 
 export default function AboutPage() {
+  const [settings, setSettings] = useState({
+    aboutHeroTitle: "Building Digital Futures, One Idea at a Time",
+    aboutIntro:
+      "NexGen IT Solutions is a full-service digital agency helping startups and enterprises turn ambitious ideas into powerful, scalable technology products. From web and mobile development to UI/UX design and digital marketing, we combine strategy, design, and engineering to deliver solutions that drive real business growth.",
+    aboutMission:
+      "To empower businesses with innovative, reliable, and scalable technology solutions that simplify operations, enhance customer experience, and accelerate growth — delivered with transparency and genuine care.",
+    aboutVision:
+      "To be a globally recognized digital agency known for turning bold ideas into exceptional digital products — setting the benchmark for quality, creativity, and client success in the IT industry.",
+  });
+
+  useEffect(() => {
+    fetch("/api/settings")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.settings) setSettings(data.settings);
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <div className="min-h-screen pt-32 pb-20">
       {/* Hero / Company Introduction */}
       <section className="section-padding max-w-7xl mx-auto mb-24">
         <SectionHeading
-          title="Building Digital Futures, One Idea at a Time"
+          title={settings.aboutHeroTitle}
           subtitle="About NexGen IT Solutions"
           className="mb-8"
         />
         <FadeIn delay={0.15}>
           <p className="text-gray-400 text-lg leading-relaxed max-w-3xl mx-auto text-center">
-            NexGen IT Solutions is a full-service digital agency helping startups and enterprises
-            turn ambitious ideas into powerful, scalable technology products. From web and mobile
-            development to UI/UX design and digital marketing, we combine strategy, design, and
-            engineering to deliver solutions that drive real business growth.
+            {settings.aboutIntro}
           </p>
         </FadeIn>
 
@@ -193,9 +210,7 @@ export default function AboutPage() {
               </div>
               <h3 className="text-2xl font-display font-bold text-white mb-4">Our Mission</h3>
               <p className="text-gray-400 leading-relaxed">
-                To empower businesses with innovative, reliable, and scalable technology solutions
-                that simplify operations, enhance customer experience, and accelerate growth —
-                delivered with transparency and genuine care.
+                {settings.aboutMission}
               </p>
             </div>
           </FadeIn>
@@ -206,9 +221,7 @@ export default function AboutPage() {
               </div>
               <h3 className="text-2xl font-display font-bold text-white mb-4">Our Vision</h3>
               <p className="text-gray-400 leading-relaxed">
-                To be a globally recognized digital agency known for turning bold ideas into
-                exceptional digital products — setting the benchmark for quality, creativity, and
-                client success in the IT industry.
+                {settings.aboutVision}
               </p>
             </div>
           </FadeIn>

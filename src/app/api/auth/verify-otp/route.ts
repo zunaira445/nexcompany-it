@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
         email: user.email,
         role: user.role,
       });
-      setTokenCookie(token);
+      await setTokenCookie(token);
 
       // Send welcome email
       await sendWelcomeEmail(email, user.fullName);

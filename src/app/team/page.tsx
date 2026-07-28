@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Users, Heart, Coffee, Sparkles } from "lucide-react";
 import { LinkedinIcon, TwitterIcon, GithubIcon } from "@/components/icons/SocialIcons";
@@ -7,7 +8,16 @@ import Image from "next/image";
 import SectionHeading from "@/components/ui/SectionHeading";
 import GradientButton from "@/components/ui/GradientButton";
 import FadeIn from "@/components/animations/FadeIn";
-import { teamMembers } from "@/data/team-data";
+import { teamMembers as fallbackMembers } from "@/data/team-data";
+
+interface DbMember {
+  _id: string;
+  name: string;
+  role: string;
+  bio: string;
+  image: string;
+  socials: { linkedin?: string; twitter?: string; github?: string };
+}
 
 const cultureValues = [
   { icon: Heart, title: "People First", description: "We invest in our team's growth as much as our clients' success." },
@@ -17,6 +27,21 @@ const cultureValues = [
 ];
 
 export default function TeamPage() {
+  const [teamMembers, setTeamMembers] = useState<DbMember[]>([]);
+
+  useEffect(() => {
+    fetch("/api/team")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.success && data.members.length > 0) {
+          setTeamMembers(data.members);
+        } else {
+          setTeamMembers(fallbackMembers.map((m, i) => ({ ...m, _id: String(i) })));
+        }
+      })
+      .catch(() => setTeamMembers(fallbackMembers.map((m, i) => ({ ...m, _id: String(i) }))));
+  }, []);
+
   return (
     <div className="min-h-screen pt-32 pb-20">
       <section className="section-padding max-w-7xl mx-auto mb-16">
@@ -34,7 +59,7 @@ export default function TeamPage() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {teamMembers.map((member, i) => (
             <motion.div
-              key={member.name}
+              key={member._id}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
@@ -55,14 +80,14 @@ export default function TeamPage() {
                 <p className="text-primary text-sm mb-3">{member.role}</p>
                 <p className="text-gray-400 text-xs leading-relaxed mb-3">{member.bio}</p>
                 <div className="flex flex-wrap gap-1.5 mb-4">
-                  {member.skills.map((skill) => (
+                  {((member as any).skills || []).map((skill: string) => (
                     <span key={skill} className="text-[11px] text-gray-400 bg-white/5 px-2 py-1 rounded">
                       {skill}
                     </span>
                   ))}
                 </div>
                 <div className="flex items-center justify-between pt-3 border-t border-white/10">
-                  <span className="text-xs text-gray-500">{member.experience}</span>
+                  <span className="text-xs text-gray-500">{(member as any).experience || ""}</span>
                   <div className="flex items-center gap-3">
                     {member.socials.linkedin && (
                       <a href={member.socials.linkedin} className="text-gray-500 hover:text-primary transition-colors">
