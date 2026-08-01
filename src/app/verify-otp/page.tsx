@@ -5,11 +5,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { ShieldCheck, ArrowRight, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
+import { useAuth } from "@/context/AuthContext";
 
 function VerifyOtpForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
+  const { setUser } = useAuth();
 
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,7 +35,8 @@ function VerifyOtpForm() {
 
       if (data.success) {
         toast.success("Email verified! Welcome aboard.");
-        router.push("/");
+        if (data.user) setUser(data.user); // update auth state instantly — no refresh needed
+        router.push(data.user?.role === "admin" ? "/admin" : "/");
       } else {
         toast.error(data.message || "Invalid or expired OTP.");
       }

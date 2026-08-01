@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -13,6 +13,7 @@ import {
   LogOut,
   Loader2,
 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -26,42 +27,26 @@ const navItems = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [checking, setChecking] = useState(true);
-  const [authorized, setAuthorized] = useState(false);
+  const { user, loading, logout } = useAuth();
 
   useEffect(() => {
-    async function checkAdmin() {
-      try {
-        const res = await fetch("/api/auth/me");
-        const data = await res.json();
-        if (data.success && data.user?.role === "admin") {
-          setAuthorized(true);
-        } else {
-          router.push("/login?redirect=/admin");
-        }
-      } catch {
-        router.push("/login?redirect=/admin");
-      } finally {
-        setChecking(false);
-      }
+    if (!loading && (!user || user.role !== "admin")) {
+      router.push("/admin-login");
     }
-    checkAdmin();
-  }, [router]);
+  }, [loading, user, router]);
 
   async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" });
+    await logout();
     router.push("/");
   }
 
-  if (checking) {
+  if (loading || !user || user.role !== "admin") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#05050A]">
         <Loader2 className="w-8 h-8 text-primary animate-spin" />
       </div>
     );
   }
-
-  if (!authorized) return null;
 
   return (
     <div className="relative min-h-screen flex bg-[#05050A]">

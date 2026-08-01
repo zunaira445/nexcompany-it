@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import PremiumBackground from "@/components/animations/PremiumBackground";
 import SiteChrome from "@/components/SiteChrome";
+import { AuthProvider } from "@/context/AuthContext";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space-grotesk" });
@@ -17,11 +18,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="dark">
       <body className={`${inter.variable} ${spaceGrotesk.variable} font-sans`}>
-        <PremiumBackground />
-        <SiteChrome>{children}</SiteChrome>
-        <Toaster position="top-right" toastOptions={{
-          style: { background: "#1E293B", color: "#fff", border: "1px solid rgba(255,255,255,0.1)" }
-        }} />
+        <AuthProvider>
+          <PremiumBackground />
+          <SiteChrome>{children}</SiteChrome>
+          <Toaster position="top-right" toastOptions={{
+            style: { background: "#1E293B", color: "#fff", border: "1px solid rgba(255,255,255,0.1)" }
+          }} />
+        </AuthProvider>
       </body>
     </html>
   );

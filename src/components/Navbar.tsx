@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronDown, User, LogOut, LayoutDashboard } from "lucide-react";
+import { Menu, X, ChevronDown, LogOut, LayoutDashboard } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const navLinks = [
   { name: "Home", href: "/" },
@@ -28,24 +29,14 @@ const navLinks = [
 
 export default function Navbar() {
   const router = useRouter();
+  const { user, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-  const [user, setUser] = useState<{ fullName: string; email: string; role: string } | null>(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
 
-  useEffect(() => {
-    fetch("/api/auth/me")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.success && data.user) setUser(data.user);
-      })
-      .catch(() => {});
-  }, []);
-
   async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    setUser(null);
+    await logout();
     setShowUserMenu(false);
     router.push("/");
     router.refresh();
@@ -134,16 +125,16 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* CTA Buttons */}
-          <div className="hidden lg:flex items-center gap-4">
-            {user ? (
+          {/* Account menu — only visible when already logged in. No public Sign In/Register buttons. */}
+          {user && (
+            <div className="hidden lg:flex items-center gap-4">
               <div className="relative">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
                   className="flex items-center gap-2 text-sm font-semibold text-gray-300 hover:text-white transition-colors"
                 >
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
-                    {user.fullName?.charAt(0).toUpperCase() || <User className="w-4 h-4" />}
+                    {user.fullName?.charAt(0).toUpperCase() || "U"}
                   </div>
                   {user.fullName?.split(" ")[0]}
                   <ChevronDown className={`w-4 h-4 transition-transform ${showUserMenu ? "rotate-180" : ""}`} />
@@ -179,23 +170,8 @@ export default function Navbar() {
                   )}
                 </AnimatePresence>
               </div>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="text-sm font-semibold text-gray-300 hover:text-white transition-colors"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/register"
-                  className="px-6 py-2.5 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-semibold rounded-full hover:shadow-lg hover:shadow-blue-500/25 transition-all hover:scale-105"
-                >
-                  Get Started
-                </Link>
-              </>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Mobile Menu Button */}
           <button
@@ -240,7 +216,7 @@ export default function Navbar() {
                 transition={{ delay: 0.5 }}
                 className="flex flex-col gap-4 mt-8"
               >
-                {user ? (
+                {user && (
                   <>
                     <div className="px-4 py-3 bg-white/5 rounded-xl">
                       <p className="text-white text-sm font-medium">{user.fullName}</p>
@@ -264,21 +240,6 @@ export default function Navbar() {
                     >
                       Logout
                     </button>
-                  </>
-                ) : (
-                  <>
-                    <Link
-                      href="/login"
-                      className="px-8 py-3 border border-white/20 text-white font-semibold rounded-full text-center hover:bg-white/10 transition-all"
-                    >
-                      Sign In
-                    </Link>
-                    <Link
-                      href="/register"
-                      className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-full text-center hover:shadow-lg hover:shadow-blue-500/25 transition-all"
-                    >
-                      Get Started
-                    </Link>
                   </>
                 )}
               </motion.div>
