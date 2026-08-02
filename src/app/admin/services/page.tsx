@@ -110,14 +110,14 @@ export default function AdminServicesPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-display font-bold text-white mb-1">Services</h1>
           <p className="text-gray-400">
             Manage the title, description, image and features shown on each service page.
           </p>
         </div>
-        <button onClick={openAddForm} className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-primary to-accent-purple text-white font-medium">
+        <button onClick={openAddForm} className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-primary to-accent-purple text-white font-medium w-full sm:w-auto">
           <Plus className="w-4 h-4" /> Add Service
         </button>
       </div>
